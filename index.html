@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillTrack – Employee Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #e05a30; --blue: #2e8ec9; --green: #3bb88a; --purple: #7f5af0;
+  --orange: #f59e0b; --dark: #1a1a2e; --mid: #2d2d44; --light: #f4f6fb;
+  --text: #1e1e2e; --muted: #6b7280; --border: #e5e7eb;
+  --white: #ffffff; --success: #10b981; --danger: #ef4444; --warn: #f59e0b;
+  --sidebar-w: 220px; --header-h: 60px;
+  --ff: 'DM Sans', sans-serif; --fh: 'Syne', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--ff);background:var(--light);color:var(--text);font-size:14px}
+
+/* ── AUTH SCREENS ─────────────────────────────────────────── */
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);position:fixed;inset:0;z-index:1000;transition:opacity 0.4s}
+.auth-card{background:#fff;border-radius:20px;padding:40px;width:380px;box-shadow:0 30px 80px rgba(0,0,0,0.4)}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.auth-logo span{font-family:var(--fh);font-size:22px;color:var(--dark)}
+.auth-logo-icon{width:36px;height:36px;background:var(--red);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.auth-title{font-family:var(--fh);font-size:26px;font-weight:800;margin-bottom:6px}
+.auth-sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-family:var(--ff);font-size:14px;color:var(--text);background:#fff;transition:border 0.2s,box-shadow 0.2s;outline:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,142,201,0.12)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;border-radius:10px;font-family:var(--ff);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s}
+.btn-primary{background:var(--red);color:#fff}.btn-primary:hover{background:#c94d22;transform:translateY(-1px)}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#236fa0}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#2ea370}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#dc2626}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border)}.btn-ghost:hover{background:var(--light)}
+.btn-full{width:100%}
+.auth-hint{font-size:12px;color:var(--muted);text-align:center;margin-top:16px}
+.auth-hint a{color:var(--blue);cursor:pointer;text-decoration:none;font-weight:600}
+
+/* ── APP LAYOUT ──────────────────────────────────────────── */
+#app{display:none;height:100vh;overflow:hidden}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--dark);display:flex;flex-direction:column;z-index:100;transition:transform 0.3s}
+.sidebar-logo{padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px}
+.sidebar-logo span{font-family:var(--fh);font-size:17px;color:#fff}
+.sidebar-logo-icon{width:32px;height:32px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+nav{flex:1;padding:16px 10px;overflow-y:auto}
+.nav-section{font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:1.2px;text-transform:uppercase;padding:8px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,0.65);cursor:pointer;margin-bottom:2px;transition:all 0.15s;font-size:13.5px}
+.nav-item:hover{background:rgba(255,255,255,0.08);color:#fff}
+.nav-item.active{background:var(--red);color:#fff;font-weight:600}
+.nav-item svg{flex-shrink:0;opacity:0.8}
+.sidebar-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08)}
+.user-pill{display:flex;align-items:center;gap:10px}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.user-info{flex:1;overflow:hidden}
+.user-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4)}
+
+.main{margin-left:var(--sidebar-w);display:flex;flex-direction:column;height:100vh}
+.topbar{height:var(--header-h);background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:10}
+.topbar-title{font-family:var(--fh);font-size:18px;font-weight:800;flex:1}
+.topbar-search{display:flex;align-items:center;gap:8px;background:var(--light);border:1px solid var(--border);border-radius:10px;padding:8px 14px;width:240px}
+.topbar-search input{border:none;background:transparent;font-family:var(--ff);font-size:13px;color:var(--text);outline:none;width:100%}
+.notif-btn{width:36px;height:36px;border-radius:10px;background:var(--light);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+.notif-dot{position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid #fff}
+.page{flex:1;overflow-y:auto;padding:24px}
+
+/* ── DASHBOARD ───────────────────────────────────────────── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{border-radius:14px;padding:18px 20px;color:#fff;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden;cursor:pointer;transition:transform 0.2s}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-card::after{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.1)}
+.stat-card .sc-label{font-size:11px;font-weight:700;letter-spacing:0.8px;opacity:0.85;text-transform:uppercase}
+.stat-card .sc-value{font-family:var(--fh);font-size:30px;font-weight:800;line-height:1}
+.stat-card .sc-change{font-size:12px;opacity:0.8}
+.sc-red{background:linear-gradient(135deg,#e05a30,#c94d22)}
+.sc-blue{background:linear-gradient(135deg,#2e8ec9,#1e6fa0)}
+.sc-green{background:linear-gradient(135deg,#3bb88a,#2a9a70)}
+.sc-purple{background:linear-gradient(135deg,#7f5af0,#6344d0)}
+
+.dash-grid{display:grid;grid-template-columns:1fr 320px;gap:20px}
+.card{background:#fff;border-radius:14px;border:1px solid var(--border);padding:20px}
+.card-title{font-family:var(--fh);font-size:15px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.card-title a{font-family:var(--ff);font-size:12px;color:var(--blue);font-weight:500;cursor:pointer;text-decoration:none}
+
+/* ── TABLES ──────────────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--light);font-size:11px;font-weight:700;color:var(--muted);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
+tbody tr{border-bottom:1px solid #f0f0f0;transition:background 0.1s}
+tbody tr:hover{background:#fafbff}
+tbody td{padding:12px 12px;font-size:13.5px;vertical-align:middle}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-yellow{background:#fef9c3;color:#854d0e}
+.badge-purple{background:#f3e8ff;color:#6b21a8}
+
+/* ── EMPLOYEES ────────────────────────────────────────────── */
+.emp-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.emp-row-info{display:flex;align-items:center;gap:10px}
+.emp-name{font-weight:600;font-size:13.5px}
+.emp-email{font-size:12px;color:var(--muted)}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar input,.toolbar select{border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--ff);font-size:13px;color:var(--text);background:#fff;outline:none}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--blue)}
+.action-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s}
+.action-btn:hover{background:var(--light)}
+.action-btn.del:hover{background:#fee2e2;border-color:#fca5a5}
+
+/* ── MODAL ───────────────────────────────────────────────── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 40px 100px rgba(0,0,0,0.3)}
+.modal-header{padding:22px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:var(--fh);font-size:17px;font-weight:800}
+.modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+.modal-body{padding:20px 24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* ── CHARTS ──────────────────────────────────────────────── */
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;padding-bottom:4px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:6px 6px 0 0;transition:opacity 0.2s;cursor:pointer}
+.bar:hover{opacity:0.8}
+.bar-label{font-size:10px;color:var(--muted);font-weight:600}
+.bar-val{font-size:10px;color:var(--text);font-weight:700}
+
+/* ── SKILL INDEX ─────────────────────────────────────────── */
+.skill-ring-wrap{position:relative;width:150px;height:150px;margin:0 auto 16px}
+.skill-ring-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.skill-ring-label .sr-val{font-family:var(--fh);font-size:24px;font-weight:800}
+.skill-ring-label .sr-cat{font-size:11px;color:var(--muted);font-weight:600}
+.skill-list{list-style:none}
+.skill-list li{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
+.skill-list li:last-child{border:none}
+.skill-dot{width:9px;height:9px;border-radius:50%;margin-right:8px;flex-shrink:0}
+.progress-bar{height:6px;border-radius:3px;background:#f0f0f0;overflow:hidden;flex:1;margin:0 10px}
+.progress-fill{height:100%;border-radius:3px}
+
+/* ── DEPARTMENT QUESTION BANK ────────────────────────────── */
+.qbank-header{display:grid;grid-template-columns:2fr repeat(5,1fr);background:var(--light);border-radius:8px 8px 0 0;padding:10px 12px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;border:1px solid var(--border);border-bottom:none}
+.qbank-row{display:grid;grid-template-columns:2fr repeat(5,1fr);padding:11px 12px;border:1px solid #f0f0f0;border-top:none;font-size:13.5px;transition:background 0.1s}
+.qbank-row:hover{background:#fafbff}
+.qbank-row:last-child{border-radius:0 0 8px 8px;border:1px solid var(--border);border-top:none}
+
+/* ── REPORTS ─────────────────────────────────────────────── */
+.report-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:14px}
+.report-card:hover{border-color:var(--blue);transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,0.08)}
+.report-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.report-title{font-weight:700;font-size:14px;margin-bottom:4px}
+.report-desc{font-size:12px;color:var(--muted)}
+
+/* ── TOASTS ──────────────────────────────────────────────── */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:#1e1e2e;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;animation:slideIn 0.3s ease;box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--danger)}
+.toast.info{border-left:3px solid var(--blue)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── MISC ────────────────────────────────────────────────── */
+.empty-state{text-align:center;padding:40px;color:var(--muted)}
+.empty-state svg{margin-bottom:12px;opacity:0.4}
+.empty-state p{font-size:14px}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.page-header h2{font-family:var(--fh);font-size:22px;font-weight:800}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.text-muted{color:var(--muted)}
+.text-red{color:var(--danger)}
+.text-green{color:var(--success)}
+.flex{display:flex}.gap-2{gap:8px}.items-center{align-items:center}
+.ml-auto{margin-left:auto}
+.hidden{display:none!important}
+@media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}.sidebar{transform:translateX(-100%)}.main{margin-left:0}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN SCREEN ══════════════ -->
+<div id="auth-screen">
+  <div class="auth-card" id="login-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="10" width="4" height="8" rx="1" fill="white"/><rect x="8" y="6" width="4" height="12" rx="1" fill="white"/><rect x="14" y="2" width="4" height="16" rx="1" fill="white"/></svg>
+      </div>
+      <span>SkillTrack</span>
+    </div>
+    <div class="auth-title">Welcome back</div>
+    <div class="auth-sub">Sign in to your account to continue</div>
+    <div class="form-group">
+      <label>Email address</label>
+      <input type="email" id="login-email" placeholder="admin@company.com" value="admin@company.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" value="admin123">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:8px">Sign In →</button>
+    <div class="auth-hint">Demo: admin@company.com / admin123</div>
+  </div>
+</div>
+
+<!-- ══════════════ APP SHELL ══════════════ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="2" y="10" width="4" height="8" rx="1" fill="white"/><rect x="8" y="6" width="4" height="12" rx="1" fill="white"/><rect x="14" y="2" width="4" height="16" rx="1" fill="white"/></svg>
+      </div>
+      <span>SkillTrack</span>
+    </div>
+    <nav>
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('employees',this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="6" cy="5" r="3" fill="currentColor"/><path d="M1 14c0-3 2.2-5 5-5s5 2 5 5" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="5" r="2" fill="currentColor" opacity=".6"/><path d="M12 10c1.5 0 3 1 3 4" stroke="currentColor" stroke-width="1.5" fill="none" opacity=".6"/></svg>
+        Employees
+      </div>
+      <div class="nav-item" onclick="showPage('departments',this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="2" y="8" width="4" height="6" rx="1" fill="currentColor"/><rect x="6" y="5" width="4" height="9" rx="1" fill="currentColor"/><rect x="10" y="2" width="4" height="12" rx="1" fill="currentColor"/></svg>
+        Departments
+      </div>
+      <div class="nav-item" onclick="showPage('assessments',this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Assessments
+      </div>
+      <div class="nav-item" onclick="showPage('qbank',this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 5v4l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Question Bank
+      </div>
+      <div class="nav-section">Analytics</div>
+      <div class="nav-item" onclick="showPage('reports',this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M2 12l3-4 3 2 3-5 3 2" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        Reports
+      </div>
+      <div class="nav-item" onclick="showPage('skillindex',this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 4v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Skill Index
+      </div>
+      <div class="nav-section">Settings</div>
+      <div class="nav-item" onclick="showPage('settings',this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Settings
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-avatar" id="sidebar-avatar">AD</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebar-name">Admin User</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-search">
+        <svg width="14" height="14" fill="none" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" stroke="#9ca3af" stroke-width="1.5"/><path d="M11 11l3 3" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input type="text" placeholder="Search anything..." id="global-search" oninput="globalSearch(this.value)">
+      </div>
+      <div class="notif-btn" onclick="toast('No new notifications','info')">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M8 2a4 4 0 0 1 4 4v3l1 1v1H3v-1l1-1V6a4 4 0 0 1 4-4zM6.5 13a1.5 1.5 0 0 0 3 0" stroke="#6b7280" stroke-width="1.5" fill="none"/></svg>
+        <div class="notif-dot"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="doLogout()" style="padding:7px 14px;font-size:13px">Logout</button>
+    </div>
+
+    <!-- PAGES -->
+    <div class="page" id="page-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card sc-red" onclick="showPage('employees',document.querySelector('[onclick*=employees]'))">
+          <div class="sc-label">Active Employees</div>
+          <div class="sc-value" id="stat-emp">2,043</div>
+          <div class="sc-change">↑ 12 this month</div>
+        </div>
+        <div class="stat-card sc-blue" onclick="showPage('departments',document.querySelector('[onclick*=departments]'))">
+          <div class="sc-label">Departments</div>
+          <div class="sc-value" id="stat-dept">60</div>
+          <div class="sc-change">↑ 2 this quarter</div>
+        </div>
+        <div class="stat-card sc-green" onclick="showPage('assessments',document.querySelector('[onclick*=assessments]'))">
+          <div class="sc-label">Assessments</div>
+          <div class="sc-value" id="stat-asmt">128</div>
+          <div class="sc-change">↑ 18 this month</div>
+        </div>
+        <div class="stat-card sc-purple" onclick="showPage('qbank',document.querySelector('[onclick*=qbank]'))">
+          <div class="sc-label">Questions</div>
+          <div class="sc-value" id="stat-q">0</div>
+          <div class="sc-change">→ No new questions</div>
+        </div>
+      </div>
+      <div class="dash-grid">
+        <div>
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-title">Monthly Assessment Activity <a onclick="showPage('reports',document.querySelector('[onclick*=reports]'))">View all →</a></div>
+            <div class="bar-chart" id="bar-chart"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Recent Employees <a onclick="showPage('employees',document.querySelector('[onclick*=employees]'))">View all →</a></div>
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Name</th><th>Department</th><th>Skill Level</th><th>Status</th></tr></thead>
+              <tbody id="recent-emp-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-title">Skill Distribution</div>
+            <div id="mini-skill"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Quick Actions</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-primary btn-full" onclick="openModal('emp')">+ Add Employee</button>
+              <button class="btn btn-blue btn-full" onclick="openModal('dept')">+ Add Department</button>
+              <button class="btn btn-green btn-full" onclick="openModal('asmt')">+ New Assessment</button>
+              <button class="btn btn-ghost btn-full" onclick="showPage('reports',document.querySelector('[onclick*=reports]'))">↗ View Reports</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page hidden" id="page-employees">
+      <div class="page-header">
+        <h2>Employees</h2>
+        <button class="btn btn-primary" onclick="openModal('emp')">+ Add Employee</button>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input type="text" placeholder="Search employees..." id="emp-search" oninput="renderEmployees()">
+          <select id="emp-dept-filter" onchange="renderEmployees()"><option value="">All Departments</option></select>
+          <select id="emp-status-filter" onchange="renderEmployees()">
+            <option value="">All Status</option>
+            <option>Active</option><option>Inactive</option>
+          </select>
+          <span class="ml-auto text-muted" id="emp-count-label"></span>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Employee</th><th>Department</th><th>Designation</th><th>Join Date</th><th>Skill</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="emp-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="page hidden" id="page-departments">
+      <div class="page-header">
+        <h2>Departments</h2>
+        <button class="btn btn-blue" onclick="openModal('dept')">+ Add Department</button>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input type="text" placeholder="Search departments..." id="dept-search" oninput="renderDepts()">
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Department Name</th><th>Head</th><th>Employees</th><th>Learn Req.</th><th>Execute Req.</th><th>Excel Req.</th><th>Propagate Req.</th><th>Total Req.</th><th>Actions</th></tr></thead>
+          <tbody id="dept-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="page hidden" id="page-assessments">
+      <div class="page-header">
+        <h2>Assessments</h2>
+        <button class="btn btn-green" onclick="openModal('asmt')">+ New Assessment</button>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input type="text" placeholder="Search assessments..." id="asmt-search" oninput="renderAssessments()">
+          <select id="asmt-status-filter" onchange="renderAssessments()">
+            <option value="">All Status</option>
+            <option>Active</option><option>Completed</option><option>Draft</option>
+          </select>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Title</th><th>Department</th><th>Type</th><th>Questions</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="asmt-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="page hidden" id="page-qbank">
+      <div class="page-header">
+        <h2>Department Wise Question Bank</h2>
+        <button class="btn btn-primary" onclick="openModal('qbank-add')">+ Add Question</button>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input type="text" placeholder="Search departments..." id="qb-search" oninput="renderQBank()">
+        </div>
+        <div id="qbank-table"></div>
+      </div>
+    </div>
+
+    <div class="page hidden" id="page-reports">
+      <div class="page-header"><h2>Reports</h2></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+        <div class="report-card" onclick="toast('Generating Employee Skills Report...','info')">
+          <div class="report-icon" style="background:#dbeafe"><svg width="22" height="22" fill="none" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" stroke="#2563eb" stroke-width="1.5" fill="none"/><path d="M7 11l3 3 5-5" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><div class="report-title">Employee Skills Report</div><div class="report-desc">Skill matrix across all departments</div></div>
+        </div>
+        <div class="report-card" onclick="toast('Generating Assessment Summary...','info')">
+          <div class="report-icon" style="background:#dcfce7"><svg width="22" height="22" fill="none" viewBox="0 0 22 22"><rect x="3" y="3" width="16" height="16" rx="2" stroke="#16a34a" stroke-width="1.5" fill="none"/><path d="M7 11h8M7 7h5M7 15h3" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><div class="report-title">Assessment Summary</div><div class="report-desc">Pass rates and scores overview</div></div>
+        </div>
+        <div class="report-card" onclick="toast('Generating Department Report...','info')">
+          <div class="report-icon" style="background:#f3e8ff"><svg width="22" height="22" fill="none" viewBox="0 0 22 22"><path d="M4 18l4-6 4 3 4-8 4 3" stroke="#9333ea" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+          <div><div class="report-title">Department Overview</div><div class="report-desc">Headcount and question bank stats</div></div>
+        </div>
+        <div class="report-card" onclick="toast('Generating Training Report...','info')">
+          <div class="report-icon" style="background:#fef3c7"><svg width="22" height="22" fill="none" viewBox="0 0 22 22"><circle cx="11" cy="11" r="7" stroke="#d97706" stroke-width="1.5" fill="none"/><path d="M11 7v5l3 3" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><div class="report-title">Training Hours</div><div class="report-desc">Time invested per employee</div></div>
+        </div>
+        <div class="report-card" onclick="toast('Generating Compliance Report...','info')">
+          <div class="report-icon" style="background:#fee2e2"><svg width="22" height="22" fill="none" viewBox="0 0 22 22"><path d="M11 3l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" stroke="#dc2626" stroke-width="1.5" fill="none"/></svg></div>
+          <div><div class="report-title">Compliance Tracker</div><div class="report-desc">Mandatory training completion</div></div>
+        </div>
+        <div class="report-card" onclick="toast('Generating Gift Requests Report...','info')">
+          <div class="report-icon" style="background:#fce7f3"><svg width="22" height="22" fill="none" viewBox="0 0 22 22"><rect x="3" y="10" width="16" height="9" rx="1.5" stroke="#db2777" stroke-width="1.5" fill="none"/><path d="M19 10V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2M11 10V19M11 10c0-2-3-5-3-5s3 .5 3 5zm0 0c0-2 3-5 3-5s-3 .5-3 5z" stroke="#db2777" stroke-width="1.5" fill="none"/></svg></div>
+          <div><div class="report-title">Gift Requests</div><div class="report-desc">Employee reward and gift log</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Assessment Activity — Last 6 Months</div>
+        <div class="bar-chart" id="report-bar" style="height:180px"></div>
+      </div>
+    </div>
+
+    <div class="page hidden" id="page-skillindex">
+      <div class="page-header"><h2>Employee Skill Index</h2></div>
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:20px">
+        <div class="card" style="text-align:center">
+          <div class="card-title" style="justify-content:center">Skill Breakdown</div>
+          <div class="skill-ring-wrap">
+            <svg width="150" height="150" viewBox="0 0 150 150" id="skill-donut"></svg>
+            <div class="skill-ring-label"><div class="sr-val" id="sd-val">2,043</div><div class="sr-cat" id="sd-cat">Learn</div></div>
+          </div>
+          <ul class="skill-list" id="skill-legend"></ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Skill Level Distribution by Department</div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Department</th><th>Learn</th><th>Execute</th><th>Excel</th><th>Propagate</th><th>Score</th></tr></thead>
+            <tbody id="skill-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page hidden" id="page-settings">
+      <div class="page-header"><h2>Settings</h2></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card">
+          <div class="card-title">Company Profile</div>
+          <div class="form-group"><label>Company Name</label><input type="text" value="ACME Corporation" id="s-company"></div>
+          <div class="form-group"><label>Industry</label><input type="text" value="Manufacturing" id="s-industry"></div>
+          <div class="form-group"><label>Location</label><input type="text" value="Chennai, Tamil Nadu" id="s-location"></div>
+          <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Account Settings</div>
+          <div class="form-group"><label>Full Name</label><input type="text" value="Admin User" id="s-name"></div>
+          <div class="form-group"><label>Email</label><input type="email" value="admin@company.com" id="s-email"></div>
+          <div class="form-group"><label>New Password</label><input type="password" placeholder="Leave blank to keep current"></div>
+          <button class="btn btn-blue" onclick="saveSettings()">Update Account</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Skill Categories</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Manage the 4 skill levels used across assessments</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px"><span class="badge badge-green">Learn</span><input type="text" value="Foundation level training" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px"></div>
+            <div style="display:flex;align-items:center;gap:10px"><span class="badge badge-blue">Execute</span><input type="text" value="Practical application" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px"></div>
+            <div style="display:flex;align-items:center;gap:10px"><span class="badge badge-purple">Excel</span><input type="text" value="Advanced mastery" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px"></div>
+            <div style="display:flex;align-items:center;gap:10px"><span class="badge badge-yellow">Propagate</span><input type="text" value="Teaching and mentoring" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px"></div>
+          </div>
+          <button class="btn btn-green" style="margin-top:14px" onclick="saveSettings()">Save Categories</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Danger Zone</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">These actions are irreversible. Proceed with caution.</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-danger" onclick="if(confirm('Reset all question bank data?'))toast('Question bank reset','success')">Reset Question Bank</button>
+            <button class="btn btn-ghost" onclick="toast('Export started — check your email','info')">Export All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" id="modal-box"></div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────
+const COLORS = ['#e05a30','#2e8ec9','#3bb88a','#7f5af0','#f59e0b','#ef4444','#06b6d4','#84cc16'];
+let employees = [
+  {id:1,name:"Arjun Sharma",email:"arjun@co.com",dept:"Body Shop",desig:"Sr. Engineer",join:"2021-03-15",skill:"Execute",status:"Active"},
+  {id:2,name:"Priya Nair",email:"priya@co.com",dept:"Paint Shop",desig:"Team Lead",join:"2020-07-22",skill:"Excel",status:"Active"},
+  {id:3,name:"Ravi Kumar",email:"ravi@co.com",dept:"Assembly",desig:"Technician",join:"2022-01-10",skill:"Learn",status:"Active"},
+  {id:4,name:"Santhosh M",email:"santhosh@co.com",dept:"Academy",desig:"Trainer",join:"2019-11-05",skill:"Propagate",status:"Active"},
+  {id:5,name:"Deepa Raj",email:"deepa@co.com",dept:"Electrical",desig:"Engineer",join:"2023-04-18",skill:"Execute",status:"Inactive"},
+  {id:6,name:"Vikram S",email:"vikram@co.com",dept:"Chassis",desig:"Supervisor",join:"2018-09-30",skill:"Excel",status:"Active"},
+  {id:7,name:"Meena T",email:"meena@co.com",dept:"Body Shop",desig:"Operator",join:"2022-12-01",skill:"Learn",status:"Active"},
+  {id:8,name:"Karthik P",email:"karthik@co.com",dept:"Final Assembly",desig:"Lead",join:"2020-05-14",skill:"Propagate",status:"Active"},
+];
+let depts = [
+  {id:1,name:"4 ROLL CALENDER",head:"—",learn:0,execute:0,excel:0,propagate:0},
+  {id:2,name:"ACADEMY",head:"Santhosh M",learn:0,execute:0,excel:0,propagate:0},
+  {id:3,name:"AUTO SEALANT",head:"—",learn:2,execute:1,excel:0,propagate:0},
+  {id:4,name:"BODY SHOP",head:"Arjun Sharma",learn:5,execute:4,excel:2,propagate:1},
+  {id:5,name:"CHASSIS ASSEMBLY",head:"Vikram S",learn:3,execute:2,excel:1,propagate:0},
+  {id:6,name:"ELECTRICAL DEPT",head:"Deepa Raj",learn:4,execute:3,excel:2,propagate:1},
+  {id:7,name:"FINAL ASSEMBLY",head:"Karthik P",learn:6,execute:5,excel:3,propagate:2},
+  {id:8,name:"PAINT SHOP",head:"Priya Nair",learn:2,execute:2,excel:1,propagate:0},
+];
+let assessments = [
+  {id:1,title:"Safety Induction 2024",dept:"Body Shop",type:"Learn",questions:20,duration:"30 min",status:"Active"},
+  {id:2,title:"Electrical Safety Test",dept:"Electrical Dept",type:"Execute",questions:35,duration:"45 min",status:"Completed"},
+  {id:3,title:"Paint Process Q1",dept:"Paint Shop",type:"Excel",questions:28,duration:"40 min",status:"Active"},
+  {id:4,title:"Assembly Line Basics",dept:"Final Assembly",type:"Learn",questions:15,duration:"20 min",status:"Draft"},
+  {id:5,title:"Trainer Certification",dept:"Academy",type:"Propagate",questions:50,duration:"60 min",status:"Active"},
+];
+const months=['Jan','Feb','Mar','Apr','May','Jun'];
+const actData=[45,62,38,71,55,88];
+const skillColors=['#e05a30','#2e8ec9','#3bb88a','#7f5af0'];
+const skillNames=['Learn','Execute','Excel','Propagate'];
+let nextId={emp:9,dept:9,asmt:6};
+
+// ── AUTH ──────────────────────────────────────────────────
+function doLogin(){
+  const e=document.getElementById('login-email').value;
+  const p=document.getElementById('login-pass').value;
+  if(e==='admin@company.com'&&p==='admin123'){
+    document.getElementById('auth-screen').style.opacity='0';
+    setTimeout(()=>{
+      document.getElementById('auth-screen').style.display='none';
+      document.getElementById('app').style.display='flex';
+      initApp();
+    },400);
+  } else {
+    toast('Invalid credentials. Try admin@company.com / admin123','error');
+  }
+}
+function doLogout(){
+  document.getElementById('app').style.display='none';
+  const a=document.getElementById('auth-screen');
+  a.style.display='flex';a.style.opacity='1';
+}
+document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+// ── PAGES ──────────────────────────────────────────────────
+const pageNames={dashboard:'Dashboard',employees:'Employees',departments:'Departments',assessments:'Assessments',qbank:'Question Bank',reports:'Reports',skillindex:'Skill Index',settings:'Settings'};
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('page-'+id).classList.remove('hidden');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.getElementById('topbar-title').textContent=pageNames[id]||id;
+  if(id==='employees')renderEmployees();
+  if(id==='departments')renderDepts();
+  if(id==='assessments')renderAssessments();
+  if(id==='qbank')renderQBank();
+  if(id==='skillindex')renderSkillIndex();
+  if(id==='reports')renderReportBar();
+}
+
+// ── INIT ──────────────────────────────────────────────────
+function initApp(){
+  renderBar();renderRecentEmp();renderMiniSkill();renderDeptFilter();
+  document.getElementById('stat-emp').textContent=employees.filter(e=>e.status==='Active').length.toLocaleString();
+  document.getElementById('stat-dept').textContent=depts.length;
+}
+
+// ── BAR CHART ─────────────────────────────────────────────
+function renderBar(containerId='bar-chart'){
+  const c=document.getElementById(containerId);
+  if(!c)return;
+  const max=Math.max(...actData);
+  c.innerHTML=months.map((m,i)=>`
+    <div class="bar-col">
+      <div class="bar-val">${actData[i]}</div>
+      <div class="bar" style="background:${i===5?'var(--red)':'#dbeafe'};height:${(actData[i]/max)*100}%;min-height:6px"></div>
+      <div class="bar-label">${m}</div>
+    </div>`).join('');
+}
+function renderReportBar(){renderBar('report-bar');}
+
+// ── RECENT EMPLOYEES ──────────────────────────────────────
+function renderRecentEmp(){
+  const tbody=document.getElementById('recent-emp-tbody');
+  const sl=skillBadge;
+  tbody.innerHTML=employees.slice(0,5).map(e=>`
+    <tr>
+      <td><div class="emp-row-info"><div class="emp-avatar" style="background:${COLORS[e.id%COLORS.length]}22;color:${COLORS[e.id%COLORS.length]}">${e.name.split(' ').map(x=>x[0]).join('')}</div><div><div class="emp-name">${e.name}</div><div class="emp-email">${e.email}</div></div></div></td>
+      <td>${e.dept}</td>
+      <td>${sl(e.skill)}</td>
+      <td>${statusBadge(e.status)}</td>
+    </tr>`).join('');
+}
+
+// ── MINI SKILL ────────────────────────────────────────────
+function renderMiniSkill(){
+  const cont=document.getElementById('mini-skill');
+  const counts=skillNames.map((s,i)=>employees.filter(e=>e.skill===s).length);
+  const total=counts.reduce((a,b)=>a+b,0);
+  cont.innerHTML=`<ul class="skill-list">${skillNames.map((s,i)=>`
+    <li>
+      <span class="skill-dot" style="background:${skillColors[i]}"></span>
+      <span>${s}</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:${total?counts[i]/total*100:0}%;background:${skillColors[i]}"></div></div>
+      <span style="font-weight:600;min-width:28px;text-align:right">${counts[i]}</span>
+    </li>`).join('')}</ul>`;
+}
+
+// ── DEPT FILTER ───────────────────────────────────────────
+function renderDeptFilter(){
+  const sel=document.getElementById('emp-dept-filter');
+  sel.innerHTML='<option value="">All Departments</option>'+depts.map(d=>`<option>${d.name}</option>`).join('');
+}
+
+// ── EMPLOYEES ─────────────────────────────────────────────
+function renderEmployees(){
+  const q=(document.getElementById('emp-search')||{value:''}).value.toLowerCase();
+  const ds=(document.getElementById('emp-dept-filter')||{value:''}).value;
+  const ss=(document.getElementById('emp-status-filter')||{value:''}).value;
+  let list=employees.filter(e=>{
+    const mq=!q||e.name.toLowerCase().includes(q)||e.email.toLowerCase().includes(q)||e.dept.toLowerCase().includes(q);
+    const md=!ds||e.dept===ds;
+    const ms=!ss||e.status===ss;
+    return mq&&md&&ms;
+  });
+  const lbl=document.getElementById('emp-count-label');
+  if(lbl)lbl.textContent=`${list.length} employee${list.length!==1?'s':''}`;
+  const tbody=document.getElementById('emp-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=list.length?list.map(e=>`
+    <tr>
+      <td><div class="emp-row-info"><div class="emp-avatar" style="background:${COLORS[e.id%COLORS.length]}22;color:${COLORS[e.id%COLORS.length]}">${e.name.split(' ').map(x=>x[0]).join('')}</div><div><div class="emp-name">${e.name}</div><div class="emp-email">${e.email}</div></div></div></td>
+      <td>${e.dept}</td>
+      <td>${e.desig}</td>
+      <td>${e.join}</td>
+      <td>${skillBadge(e.skill)}</td>
+      <td>${statusBadge(e.status)}</td>
+      <td><div class="flex gap-2">
+        <button class="action-btn" title="Edit" onclick="editEmployee(${e.id})">✏️</button>
+        <button class="action-btn del" title="Delete" onclick="deleteEmployee(${e.id})">🗑️</button>
+      </div></td>
+    </tr>`).join(''):'<tr><td colspan="7"><div class="empty-state"><p>No employees found</p></div></td></tr>';
+}
+
+function editEmployee(id){
+  const e=employees.find(x=>x.id===id);
+  if(!e)return;
+  openEmpModal(e);
+}
+function deleteEmployee(id){
+  if(!confirm('Delete this employee?'))return;
+  employees=employees.filter(e=>e.id!==id);
+  renderEmployees();renderRecentEmp();renderMiniSkill();
+  document.getElementById('stat-emp').textContent=employees.filter(e=>e.status==='Active').length.toLocaleString();
+  toast('Employee deleted','success');
+}
+
+// ── DEPARTMENTS ───────────────────────────────────────────
+function renderDepts(){
+  const q=(document.getElementById('dept-search')||{value:''}).value.toLowerCase();
+  const list=depts.filter(d=>!q||d.name.toLowerCase().includes(q));
+  const tbody=document.getElementById('dept-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=list.length?list.map(d=>{
+    const t=d.learn+d.execute+d.excel+d.propagate;
+    return`<tr>
+      <td style="font-weight:600">${d.name}</td>
+      <td>${d.head}</td>
+      <td>${employees.filter(e=>e.dept.toUpperCase()===d.name).length}</td>
+      <td class="${d.learn===0?'text-red':''}">${d.learn}</td>
+      <td class="${d.execute===0?'text-red':''}">${d.execute}</td>
+      <td class="${d.excel===0?'text-red':''}">${d.excel}</td>
+      <td class="${d.propagate===0?'text-red':''}">${d.propagate}</td>
+      <td class="${t===0?'text-red':''}">${t}</td>
+      <td><div class="flex gap-2">
+        <button class="action-btn" onclick="editDept(${d.id})">✏️</button>
+        <button class="action-btn del" onclick="deleteDept(${d.id})">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="9"><div class="empty-state"><p>No departments found</p></div></td></tr>';
+}
+function editDept(id){
+  const d=depts.find(x=>x.id===id);
+  if(!d)return;
+  openDeptModal(d);
+}
+function deleteDept(id){
+  if(!confirm('Delete this department?'))return;
+  depts=depts.filter(d=>d.id!==id);
+  renderDepts();
+  document.getElementById('stat-dept').textContent=depts.length;
+  toast('Department deleted','success');
+}
+
+// ── ASSESSMENTS ───────────────────────────────────────────
+function renderAssessments(){
+  const q=(document.getElementById('asmt-search')||{value:''}).value.toLowerCase();
+  const sf=(document.getElementById('asmt-status-filter')||{value:''}).value;
+  const list=assessments.filter(a=>{
+    const mq=!q||a.title.toLowerCase().includes(q)||a.dept.toLowerCase().includes(q);
+    const ms=!sf||a.status===sf;
+    return mq&&ms;
+  });
+  const tbody=document.getElementById('asmt-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=list.length?list.map(a=>`
+    <tr>
+      <td style="font-weight:600">${a.title}</td>
+      <td>${a.dept}</td>
+      <td>${skillBadge(a.type)}</td>
+      <td>${a.questions}</td>
+      <td>${a.duration}</td>
+      <td>${statusBadge(a.status)}</td>
+      <td><div class="flex gap-2">
+        <button class="action-btn" onclick="toast('Editing assessment...','info')">✏️</button>
+        <button class="action-btn del" onclick="deleteAsmt(${a.id})">🗑️</button>
+      </div></td>
+    </tr>`).join(''):'<tr><td colspan="7"><div class="empty-state"><p>No assessments found</p></div></td></tr>';
+}
+function deleteAsmt(id){
+  if(!confirm('Delete this assessment?'))return;
+  const i=assessments.findIndex(a=>a.id===id);
+  if(i>-1)assessments.splice(i,1);
+  renderAssessments();toast('Assessment deleted','success');
+}
+
+// ── Q BANK ────────────────────────────────────────────────
+function renderQBank(){
+  const q=(document.getElementById('qb-search')||{value:''}).value.toLowerCase();
+  const list=depts.filter(d=>!q||d.name.toLowerCase().includes(q));
+  const el=document.getElementById('qbank-table');
+  if(!el)return;
+  el.innerHTML=`
+    <div class="qbank-header"><span>Department</span><span>Learn Req.</span><span>Execute Req.</span><span>Excel Req.</span><span>Propagate Req.</span><span>Total</span></div>
+    ${list.map(d=>{
+      const t=d.learn+d.execute+d.excel+d.propagate;
+      return`<div class="qbank-row">
+        <span style="font-weight:600">${d.name}</span>
+        <span class="${d.learn===0?'text-red':''}">${d.learn}</span>
+        <span class="${d.execute===0?'text-red':''}">${d.execute}</span>
+        <span class="${d.excel===0?'text-red':''}">${d.excel}</span>
+        <span class="${d.propagate===0?'text-red':''}">${d.propagate}</span>
+        <span class="${t===0?'text-red':''}" style="font-weight:700">${t}</span>
+      </div>`;
+    }).join('')}`;
+}
+
+// ── SKILL INDEX ───────────────────────────────────────────
+function renderSkillIndex(){
+  const counts=skillNames.map((s)=>employees.filter(e=>e.skill===s).length);
+  const total=counts.reduce((a,b)=>a+b,1);
+  const svg=document.getElementById('skill-donut');
+  if(!svg)return;
+  let angle=-Math.PI/2,paths='',cx=75,cy=75,R=65,r=45;
+  counts.forEach((val,idx)=>{
+    const sweep=(val/total)*Math.PI*2;
+    const x1=cx+R*Math.cos(angle),y1=cy+R*Math.sin(angle);
+    angle+=sweep;
+    const x2=cx+R*Math.cos(angle),y2=cy+R*Math.sin(angle);
+    const ix1=cx+r*Math.cos(angle-sweep),iy1=cy+r*Math.sin(angle-sweep);
+    const ix2=cx+r*Math.cos(angle),iy2=cy+r*Math.sin(angle);
+    const large=sweep>Math.PI?1:0;
+    paths+=`<path d="M${x1},${y1} A${R},${R} 0 ${large},1 ${x2},${y2} L${ix2},${iy2} A${r},${r} 0 ${large},0 ${ix1},${iy1} Z" fill="${skillColors[idx]}"/>`;
+  });
+  svg.innerHTML=paths;
+  document.getElementById('sd-val').textContent=employees.length.toLocaleString();
+  document.getElementById('sd-cat').textContent='All Skills';
+  const leg=document.getElementById('skill-legend');
+  if(leg)leg.innerHTML=skillNames.map((s,i)=>`
+    <li><span class="skill-dot" style="background:${skillColors[i]}"></span>${s}
+    <div class="progress-bar"><div class="progress-fill" style="width:${(counts[i]/total*100).toFixed(0)}%;background:${skillColors[i]}"></div></div>
+    <span style="font-weight:600">${counts[i]}</span></li>`).join('');
+  const tbody=document.getElementById('skill-tbody');
+  if(tbody)tbody.innerHTML=depts.map(d=>{
+    const t=d.learn+d.execute+d.excel+d.propagate;
+    const score=t>0?Math.min(100,Math.round(t*4)).toString()+'%':'—';
+    return`<tr>
+      <td style="font-weight:600">${d.name}</td>
+      <td><span class="badge badge-green">${d.learn}</span></td>
+      <td><span class="badge badge-blue">${d.execute}</span></td>
+      <td><span class="badge badge-purple">${d.excel}</span></td>
+      <td><span class="badge badge-yellow">${d.propagate}</span></td>
+      <td><span style="font-weight:700;color:${t>0?'var(--green)':'var(--danger)'}">${score}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── MODALS ────────────────────────────────────────────────
+function openModal(type,data=null){
+  if(type==='emp')openEmpModal(data);
+  else if(type==='dept')openDeptModal(data);
+  else if(type==='asmt')openAsmtModal(data);
+  else if(type==='qbank-add')openQBankModal();
+}
+function showModal(html){
+  document.getElementById('modal-box').innerHTML=html;
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
+document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target===document.getElementById('modal-bg'))closeModal();});
+
+function openEmpModal(emp=null){
+  const edit=!!emp;
+  const deptOpts=depts.map(d=>`<option${emp&&emp.dept===d.name?' selected':''}>${d.name}</option>`).join('');
+  const skillOpts=skillNames.map(s=>`<option${emp&&emp.skill===s?' selected':''}>${s}</option>`).join('');
+  showModal(`
+    <div class="modal-header"><div class="modal-title">${edit?'Edit':'Add'} Employee</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Full Name</label><input id="me-name" value="${emp?emp.name:''}"></div>
+        <div class="form-group"><label>Email</label><input id="me-email" type="email" value="${emp?emp.email:''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Department</label><select id="me-dept">${deptOpts}</select></div>
+        <div class="form-group"><label>Designation</label><input id="me-desig" value="${emp?emp.desig:''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Join Date</label><input id="me-join" type="date" value="${emp?emp.join:''}"></div>
+        <div class="form-group"><label>Skill Level</label><select id="me-skill">${skillOpts}</select></div>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select id="me-status"><option${!emp||emp.status==='Active'?' selected':''}>Active</option><option${emp&&emp.status==='Inactive'?' selected':''}>Inactive</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEmployee(${emp?emp.id:0})">${edit?'Update':'Add Employee'}</button>
+    </div>`);
+}
+function saveEmployee(id){
+  const name=document.getElementById('me-name').value.trim();
+  const email=document.getElementById('me-email').value.trim();
+  if(!name||!email){toast('Name and email required','error');return;}
+  if(id){
+    const e=employees.find(x=>x.id===id);
+    Object.assign(e,{name,email,dept:document.getElementById('me-dept').value,desig:document.getElementById('me-desig').value,join:document.getElementById('me-join').value,skill:document.getElementById('me-skill').value,status:document.getElementById('me-status').value});
+    toast('Employee updated','success');
+  } else {
+    employees.push({id:nextId.emp++,name,email,dept:document.getElementById('me-dept').value,desig:document.getElementById('me-desig').value,join:document.getElementById('me-join').value||new Date().toISOString().slice(0,10),skill:document.getElementById('me-skill').value,status:document.getElementById('me-status').value});
+    toast('Employee added','success');
+  }
+  closeModal();renderEmployees();renderRecentEmp();renderMiniSkill();
+  document.getElementById('stat-emp').textContent=employees.filter(e=>e.status==='Active').length.toLocaleString();
+}
+
+function openDeptModal(dept=null){
+  const edit=!!dept;
+  showModal(`
+    <div class="modal-header"><div class="modal-title">${edit?'Edit':'Add'} Department</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Department Name</label><input id="md-name" value="${dept?dept.name:''}" placeholder="e.g. WELDING DEPT"></div>
+      <div class="form-group"><label>Department Head</label><input id="md-head" value="${dept?dept.head:''}" placeholder="Name of head"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Learn Required</label><input id="md-learn" type="number" min="0" value="${dept?dept.learn:0}"></div>
+        <div class="form-group"><label>Execute Required</label><input id="md-exec" type="number" min="0" value="${dept?dept.execute:0}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Excel Required</label><input id="md-excel" type="number" min="0" value="${dept?dept.excel:0}"></div>
+        <div class="form-group"><label>Propagate Required</label><input id="md-prop" type="number" min="0" value="${dept?dept.propagate:0}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-blue" onclick="saveDept(${dept?dept.id:0})">${edit?'Update':'Add Department'}</button>
+    </div>`);
+}
+function saveDept(id){
+  const name=document.getElementById('md-name').value.trim().toUpperCase();
+  if(!name){toast('Department name required','error');return;}
+  const d={name,head:document.getElementById('md-head').value.trim(),learn:+document.getElementById('md-learn').value,execute:+document.getElementById('md-exec').value,excel:+document.getElementById('md-excel').value,propagate:+document.getElementById('md-prop').value};
+  if(id){Object.assign(depts.find(x=>x.id===id),d);toast('Department updated','success');}
+  else{depts.push({id:nextId.dept++,...d});toast('Department added','success');}
+  closeModal();renderDepts();renderQBank();
+  document.getElementById('stat-dept').textContent=depts.length;
+  renderDeptFilter();
+}
+
+function openAsmtModal(){
+  const deptOpts=depts.map(d=>`<option>${d.name}</option>`).join('');
+  showModal(`
+    <div class="modal-header"><div class="modal-title">New Assessment</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Assessment Title</label><input id="ma-title" placeholder="e.g. Safety Test Q2"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Department</label><select id="ma-dept">${deptOpts}</select></div>
+        <div class="form-group"><label>Type</label><select id="ma-type"><option>Learn</option><option>Execute</option><option>Excel</option><option>Propagate</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>No. of Questions</label><input id="ma-q" type="number" min="1" value="20"></div>
+        <div class="form-group"><label>Duration (min)</label><input id="ma-dur" type="number" min="5" value="30"></div>
+      </div>
+      <div class="form-group"><label>Status</label><select id="ma-status"><option>Draft</option><option>Active</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-green" onclick="saveAsmt()">Create Assessment</button>
+    </div>`);
+}
+function saveAsmt(){
+  const title=document.getElementById('ma-title').value.trim();
+  if(!title){toast('Title required','error');return;}
+  assessments.push({id:nextId.asmt++,title,dept:document.getElementById('ma-dept').value,type:document.getElementById('ma-type').value,questions:+document.getElementById('ma-q').value,duration:document.getElementById('ma-dur').value+' min',status:document.getElementById('ma-status').value});
+  closeModal();renderAssessments();
+  document.getElementById('stat-asmt').textContent=assessments.length;
+  toast('Assessment created','success');
+}
+
+function openQBankModal(){
+  const deptOpts=depts.map(d=>`<option>${d.name}</option>`).join('');
+  showModal(`
+    <div class="modal-header"><div class="modal-title">Add Question</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Department</label><select id="mq-dept">${deptOpts}</select></div>
+      <div class="form-group"><label>Skill Level</label><select id="mq-skill"><option>Learn</option><option>Execute</option><option>Excel</option><option>Propagate</option></select></div>
+      <div class="form-group"><label>Question Text</label><textarea id="mq-text" rows="3" placeholder="Enter your question here..." style="resize:vertical"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQBank()">Add Question</button>
+    </div>`);
+}
+function saveQBank(){
+  const deptName=document.getElementById('mq-dept').value;
+  const skill=document.getElementById('mq-skill').value.toLowerCase();
+  const text=document.getElementById('mq-text').value.trim();
+  if(!text){toast('Question text required','error');return;}
+  const d=depts.find(x=>x.name===deptName);
+  if(d){d[skill]=(d[skill]||0)+1;}
+  closeModal();renderQBank();
+  const total=depts.reduce((s,d)=>s+d.learn+d.execute+d.excel+d.propagate,0);
+  document.getElementById('stat-q').textContent=total;
+  toast('Question added','success');
+}
+
+// ── SETTINGS ──────────────────────────────────────────────
+function saveSettings(){
+  const name=document.getElementById('s-name');
+  if(name){
+    document.getElementById('sidebar-name').textContent=name.value;
+    document.getElementById('sidebar-avatar').textContent=name.value.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  }
+  toast('Settings saved','success');
+}
+
+// ── GLOBAL SEARCH ─────────────────────────────────────────
+function globalSearch(q){
+  if(!q)return;
+  q=q.toLowerCase();
+  const empMatch=employees.find(e=>e.name.toLowerCase().includes(q));
+  if(empMatch){toast(`Found employee: ${empMatch.name}`,'info');}
+}
+
+// ── BADGES ────────────────────────────────────────────────
+function skillBadge(s){
+  const map={Learn:'badge-green',Execute:'badge-blue',Excel:'badge-purple',Propagate:'badge-yellow'};
+  return`<span class="badge ${map[s]||'badge-blue'}">${s}</span>`;
+}
+function statusBadge(s){
+  return s==='Active'?'<span class="badge badge-green">Active</span>':'<span class="badge badge-red">Inactive</span>';
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function toast(msg,type='success'){
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  const icons={success:'✓',error:'✕',info:'ℹ'};
+  t.innerHTML=`<span>${icons[type]||'•'}</span> ${msg}`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(()=>t.style.opacity='0',2800);
+  setTimeout(()=>t.remove(),3200);
+}
+</script>
+</body>
+</html>
